@@ -1,8 +1,8 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js";
 
 /* =========================================================
-   KOLKATA VICE CITY — V3
-   Mouse Lock + Third Person Camera
+   KOLKATA VICE CITY — V4
+   Mouse Lock + Correct WASD + Crosshair
 ========================================================= */
 
 const scene = new THREE.Scene();
@@ -28,18 +28,61 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 /* =========================================================
+   CENTER CROSSHAIR
+========================================================= */
+
+const crosshair = document.createElement("div");
+
+crosshair.style.position = "fixed";
+crosshair.style.left = "50%";
+crosshair.style.top = "50%";
+crosshair.style.width = "20px";
+crosshair.style.height = "20px";
+crosshair.style.transform = "translate(-50%, -50%)";
+crosshair.style.pointerEvents = "none";
+crosshair.style.zIndex = "9998";
+
+crosshair.innerHTML = `
+    <div style="
+        position:absolute;
+        left:9px;
+        top:0;
+        width:2px;
+        height:20px;
+        background:white;
+        box-shadow:0 0 4px #000;
+    "></div>
+
+    <div style="
+        position:absolute;
+        left:0;
+        top:9px;
+        width:20px;
+        height:2px;
+        background:white;
+        box-shadow:0 0 4px #000;
+    "></div>
+`;
+
+document.body.appendChild(crosshair);
+
+/* =========================================================
    LIGHTING
 ========================================================= */
 
 const hemiLight = new THREE.HemisphereLight(
     0xbfe7ff,
     0x665544,
-    2.0
+    2
 );
 
 scene.add(hemiLight);
 
-const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+const sun = new THREE.DirectionalLight(
+    0xffffff,
+    2.2
+);
+
 sun.position.set(180, 300, 120);
 sun.castShadow = true;
 
@@ -54,7 +97,7 @@ sun.shadow.camera.bottom = -500;
 scene.add(sun);
 
 /* =========================================================
-   WORLD
+   GROUND
 ========================================================= */
 
 const ground = new THREE.Mesh(
@@ -67,22 +110,15 @@ const ground = new THREE.Mesh(
 
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
+
 scene.add(ground);
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
-function box(
-    x,
-    y,
-    z,
-    w,
-    h,
-    d,
-    color,
-    cast = true
-) {
+function box(x, y, z, w, h, d, color, cast = true) {
+
     const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(w, h, d),
         new THREE.MeshStandardMaterial({
@@ -96,17 +132,12 @@ function box(
     mesh.receiveShadow = true;
 
     scene.add(mesh);
+
     return mesh;
 }
 
-function cylinder(
-    x,
-    y,
-    z,
-    radius,
-    height,
-    color
-) {
+function cylinder(x, y, z, radius, height, color) {
+
     const mesh = new THREE.Mesh(
         new THREE.CylinderGeometry(
             radius,
@@ -119,10 +150,16 @@ function cylinder(
         })
     );
 
-    mesh.position.set(x, y + height / 2, z);
+    mesh.position.set(
+        x,
+        y + height / 2,
+        z
+    );
+
     mesh.castShadow = true;
 
     scene.add(mesh);
+
     return mesh;
 }
 
@@ -146,8 +183,11 @@ function road(x, z, width, length, rotation = 0) {
 
     scene.add(roadMesh);
 
-    // Lane markings
-    for (let i = -length / 2 + 10; i < length / 2; i += 18) {
+    for (
+        let i = -length / 2 + 10;
+        i < length / 2;
+        i += 18
+    ) {
 
         const line = new THREE.Mesh(
             new THREE.PlaneGeometry(0.35, 8),
@@ -157,12 +197,19 @@ function road(x, z, width, length, rotation = 0) {
         );
 
         line.rotation.x = -Math.PI / 2;
-        line.rotation.z = rotation;
 
         if (rotation === 0) {
-            line.position.set(x, 0.05, z + i);
+            line.position.set(
+                x,
+                0.05,
+                z + i
+            );
         } else {
-            line.position.set(x + i, 0.05, z);
+            line.position.set(
+                x + i,
+                0.05,
+                z
+            );
         }
 
         scene.add(line);
@@ -183,7 +230,16 @@ road(0, 180, 20, 700, Math.PI / 2);
 ========================================================= */
 
 function sidewalk(x, z, w, d) {
-    box(x, 0.08, z, w, 0.25, d, 0x99958c, false);
+    box(
+        x,
+        0.08,
+        z,
+        w,
+        0.25,
+        d,
+        0x99958c,
+        false
+    );
 }
 
 sidewalk(18, 0, 5, 900);
@@ -213,7 +269,10 @@ function building(x, z) {
 
     const color =
         buildingColors[
-            Math.floor(Math.random() * buildingColors.length)
+            Math.floor(
+                Math.random() *
+                buildingColors.length
+            )
         ];
 
     box(
@@ -226,7 +285,6 @@ function building(x, z) {
         color
     );
 
-    // Roof
     if (Math.random() > 0.45) {
 
         box(
@@ -239,9 +297,6 @@ function building(x, z) {
             0x444444
         );
     }
-
-    // Windows
-    const windowColor = 0x24384c;
 
     for (
         let yy = 8;
@@ -262,18 +317,24 @@ function building(x, z) {
                 2.5,
                 3,
                 0.15,
-                windowColor,
+                0x24384c,
                 false
             );
         }
     }
 }
 
-/* City blocks */
+for (
+    let x = -300;
+    x <= 300;
+    x += 45
+) {
 
-for (let x = -300; x <= 300; x += 45) {
-
-    for (let z = -300; z <= 300; z += 45) {
+    for (
+        let z = -300;
+        z <= 300;
+        z += 45
+    ) {
 
         if (
             Math.abs(x) < 35 ||
@@ -298,11 +359,13 @@ const river = new THREE.Mesh(
 );
 
 river.rotation.x = -Math.PI / 2;
-river.position.set(-470, 0.02, 0);
+river.position.set(
+    -470,
+    0.02,
+    0
+);
 
 scene.add(river);
-
-/* River bank */
 
 box(
     -330,
@@ -340,7 +403,12 @@ function tree(x, z) {
         })
     );
 
-    leaves.position.set(x, 9, z);
+    leaves.position.set(
+        x,
+        9,
+        z
+    );
+
     leaves.castShadow = true;
 
     scene.add(leaves);
@@ -363,7 +431,7 @@ for (let i = 0; i < 100; i++) {
 }
 
 /* =========================================================
-   VICTORIA MEMORIAL INSPIRED LANDMARK
+   VICTORIA MEMORIAL INSPIRED
 ========================================================= */
 
 function victoriaMemorial() {
@@ -371,7 +439,11 @@ function victoriaMemorial() {
     const group = new THREE.Group();
 
     const base = new THREE.Mesh(
-        new THREE.BoxGeometry(80, 5, 55),
+        new THREE.BoxGeometry(
+            80,
+            5,
+            55
+        ),
         new THREE.MeshStandardMaterial({
             color: 0xe8dfc8
         })
@@ -381,7 +453,11 @@ function victoriaMemorial() {
     group.add(base);
 
     const hall = new THREE.Mesh(
-        new THREE.BoxGeometry(58, 24, 38),
+        new THREE.BoxGeometry(
+            58,
+            24,
+            38
+        ),
         new THREE.MeshStandardMaterial({
             color: 0xf0e5cc
         })
@@ -390,7 +466,11 @@ function victoriaMemorial() {
     hall.position.y = 17;
     group.add(hall);
 
-    for (let x = -20; x <= 20; x += 10) {
+    for (
+        let x = -20;
+        x <= 20;
+        x += 10
+    ) {
 
         const column = new THREE.Mesh(
             new THREE.CylinderGeometry(
@@ -404,7 +484,12 @@ function victoriaMemorial() {
             })
         );
 
-        column.position.set(x, 16, -21);
+        column.position.set(
+            x,
+            16,
+            -21
+        );
+
         group.add(column);
     }
 
@@ -424,9 +509,14 @@ function victoriaMemorial() {
     );
 
     dome.position.y = 33;
+
     group.add(dome);
 
-    group.position.set(250, 0, -220);
+    group.position.set(
+        250,
+        0,
+        -220
+    );
 
     scene.add(group);
 }
@@ -434,7 +524,7 @@ function victoriaMemorial() {
 victoriaMemorial();
 
 /* =========================================================
-   RAJ BHAVAN INSPIRED BUILDING
+   RAJ BHAVAN INSPIRED
 ========================================================= */
 
 function rajBhavan() {
@@ -442,7 +532,11 @@ function rajBhavan() {
     const group = new THREE.Group();
 
     const body = new THREE.Mesh(
-        new THREE.BoxGeometry(75, 22, 50),
+        new THREE.BoxGeometry(
+            75,
+            22,
+            50
+        ),
         new THREE.MeshStandardMaterial({
             color: 0xe2d3b4
         })
@@ -451,7 +545,11 @@ function rajBhavan() {
     body.position.y = 11;
     group.add(body);
 
-    for (let x = -28; x <= 28; x += 14) {
+    for (
+        let x = -28;
+        x <= 28;
+        x += 14
+    ) {
 
         const col = new THREE.Mesh(
             new THREE.CylinderGeometry(
@@ -465,11 +563,20 @@ function rajBhavan() {
             })
         );
 
-        col.position.set(x, 10, -27);
+        col.position.set(
+            x,
+            10,
+            -27
+        );
+
         group.add(col);
     }
 
-    group.position.set(240, 0, 120);
+    group.position.set(
+        240,
+        0,
+        120
+    );
 
     scene.add(group);
 }
@@ -477,7 +584,7 @@ function rajBhavan() {
 rajBhavan();
 
 /* =========================================================
-   HOWRAH BRIDGE INSPIRED STRUCTURE
+   HOWRAH BRIDGE INSPIRED
 ========================================================= */
 
 function howrahBridge() {
@@ -485,7 +592,11 @@ function howrahBridge() {
     const group = new THREE.Group();
 
     const deck = new THREE.Mesh(
-        new THREE.BoxGeometry(30, 4, 260),
+        new THREE.BoxGeometry(
+            30,
+            4,
+            260
+        ),
         new THREE.MeshStandardMaterial({
             color: 0x50545a,
             metalness: 0.4
@@ -495,7 +606,11 @@ function howrahBridge() {
     deck.position.y = 16;
     group.add(deck);
 
-    for (let z = -110; z <= 110; z += 55) {
+    for (
+        let z = -110;
+        z <= 110;
+        z += 55
+    ) {
 
         const tower = new THREE.Mesh(
             new THREE.BoxGeometry(
@@ -534,13 +649,17 @@ howrahBridge();
 ========================================================= */
 
 const maidan = new THREE.Mesh(
-    new THREE.CircleGeometry(100, 48),
+    new THREE.CircleGeometry(
+        100,
+        48
+    ),
     new THREE.MeshStandardMaterial({
         color: 0x547d3e
     })
 );
 
 maidan.rotation.x = -Math.PI / 2;
+
 maidan.position.set(
     120,
     0.04,
@@ -564,7 +683,7 @@ for (let i = 0; i < 35; i++) {
 }
 
 /* =========================================================
-   YELLOW TAXI
+   YELLOW TAXIS
 ========================================================= */
 
 function taxi(x, z, rotation = 0) {
@@ -612,9 +731,13 @@ function taxi(x, z, rotation = 0) {
             color: 0x171717
         });
 
-    for (const wx of [-2.3, 2.3]) {
+    for (
+        const wx of [-2.3, 2.3]
+    ) {
 
-        for (const wz of [-2.5, 2.5]) {
+        for (
+            const wz of [-2.5, 2.5]
+        ) {
 
             const wheel =
                 new THREE.Mesh(
@@ -635,7 +758,12 @@ function taxi(x, z, rotation = 0) {
         }
     }
 
-    group.position.set(x, 0, z);
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
     group.rotation.y = rotation;
 
     scene.add(group);
@@ -665,6 +793,7 @@ function tram(x, z) {
     );
 
     body.position.y = 2;
+
     group.add(body);
 
     const roof = new THREE.Mesh(
@@ -679,9 +808,14 @@ function tram(x, z) {
     );
 
     roof.position.y = 3.8;
+
     group.add(roof);
 
-    group.position.set(x, 0, z);
+    group.position.set(
+        x,
+        0,
+        z
+    );
 
     scene.add(group);
 }
@@ -694,7 +828,7 @@ tram(-70, 140);
 
 const player = new THREE.Group();
 
-const body = new THREE.Mesh(
+const playerBody = new THREE.Mesh(
     new THREE.CapsuleGeometry(
         1.2,
         2.8,
@@ -706,9 +840,10 @@ const body = new THREE.Mesh(
     })
 );
 
-body.position.y = 3;
-body.castShadow = true;
-player.add(body);
+playerBody.position.y = 3;
+playerBody.castShadow = true;
+
+player.add(playerBody);
 
 const head = new THREE.Mesh(
     new THREE.SphereGeometry(
@@ -723,6 +858,7 @@ const head = new THREE.Mesh(
 
 head.position.y = 5.5;
 head.castShadow = true;
+
 player.add(head);
 
 const legMat =
@@ -739,7 +875,10 @@ const legGeo =
     );
 
 const leftLeg =
-    new THREE.Mesh(legGeo, legMat);
+    new THREE.Mesh(
+        legGeo,
+        legMat
+    );
 
 leftLeg.position.set(
     -0.55,
@@ -752,7 +891,10 @@ leftLeg.castShadow = true;
 player.add(leftLeg);
 
 const rightLeg =
-    new THREE.Mesh(legGeo, legMat);
+    new THREE.Mesh(
+        legGeo,
+        legMat
+    );
 
 rightLeg.position.set(
     0.55,
@@ -773,7 +915,7 @@ player.position.set(
 scene.add(player);
 
 /* =========================================================
-   CAMERA SYSTEM
+   CAMERA
 ========================================================= */
 
 let cameraYaw = 0;
@@ -784,10 +926,12 @@ const cameraHeight = 5;
 
 let mouseLocked = false;
 
+/* =========================================================
+   CLICK TO PLAY
+========================================================= */
+
 const overlay =
     document.createElement("div");
-
-overlay.id = "mouse-lock-overlay";
 
 overlay.innerHTML = `
     <div style="
@@ -795,34 +939,37 @@ overlay.innerHTML = `
         left:50%;
         top:50%;
         transform:translate(-50%,-50%);
-        background:rgba(0,0,0,.72);
-        padding:22px 32px;
+        background:rgba(0,0,0,.75);
+        padding:24px 34px;
         border-radius:12px;
         text-align:center;
         color:white;
         font-family:Arial,sans-serif;
-        font-size:18px;
-        box-shadow:0 8px 30px rgba(0,0,0,.4);
+        box-shadow:0 8px 30px rgba(0,0,0,.5);
     ">
+
         <div style="
             font-size:28px;
             font-weight:bold;
-            margin-bottom:8px;
+            margin-bottom:10px;
         ">
             KOLKATA VICE CITY
         </div>
 
-        <div>
+        <div style="
+            font-size:19px;
+        ">
             CLICK TO PLAY
         </div>
 
         <div style="
             font-size:13px;
             opacity:.75;
-            margin-top:8px;
+            margin-top:10px;
         ">
             WASD Move • Mouse Look • SHIFT Run • ESC Unlock
         </div>
+
     </div>
 `;
 
@@ -837,13 +984,14 @@ document.body.appendChild(overlay);
    POINTER LOCK
 ========================================================= */
 
+function lockMouse() {
+
+    renderer.domElement.requestPointerLock();
+}
+
 overlay.addEventListener(
     "click",
-    () => {
-
-        renderer.domElement.requestPointerLock();
-
-    }
+    lockMouse
 );
 
 renderer.domElement.addEventListener(
@@ -851,7 +999,7 @@ renderer.domElement.addEventListener(
     () => {
 
         if (!mouseLocked) {
-            renderer.domElement.requestPointerLock();
+            lockMouse();
         }
 
     }
@@ -866,7 +1014,9 @@ document.addEventListener(
             renderer.domElement;
 
         overlay.style.display =
-            mouseLocked ? "none" : "block";
+            mouseLocked
+                ? "none"
+                : "block";
 
     }
 );
@@ -884,10 +1034,12 @@ document.addEventListener(
         const sensitivity = 0.0025;
 
         cameraYaw -=
-            event.movementX * sensitivity;
+            event.movementX *
+            sensitivity;
 
         cameraPitch -=
-            event.movementY * sensitivity;
+            event.movementY *
+            sensitivity;
 
         cameraPitch =
             THREE.MathUtils.clamp(
@@ -895,7 +1047,6 @@ document.addEventListener(
                 -0.35,
                 0.65
             );
-
     }
 );
 
@@ -924,65 +1075,86 @@ window.addEventListener(
 );
 
 /* =========================================================
-   PLAYER MOVEMENT
+   PLAYER MOVEMENT — FIXED WASD
 ========================================================= */
-
-const clock = new THREE.Clock();
 
 function updatePlayer(delta) {
 
     let forward = 0;
     let right = 0;
 
-    if (keys["KeyW"]) forward += 1;
-    if (keys["KeyS"]) forward -= 1;
-    if (keys["KeyD"]) right += 1;
-    if (keys["KeyA"]) right -= 1;
+    // W = forward
+    if (keys["KeyW"]) {
+        forward -= 1;
+    }
+
+    // S = backward
+    if (keys["KeyS"]) {
+        forward += 1;
+    }
+
+    // A = left
+    if (keys["KeyA"]) {
+        right -= 1;
+    }
+
+    // D = right
+    if (keys["KeyD"]) {
+        right += 1;
+    }
 
     const length =
-        Math.hypot(forward, right);
+        Math.hypot(
+            forward,
+            right
+        );
 
-    if (length > 0) {
+    if (length <= 0) return;
 
-        forward /= length;
-        right /= length;
+    forward /= length;
+    right /= length;
 
-        const speed =
+    const speed =
+        (
             keys["ShiftLeft"] ||
             keys["ShiftRight"]
-                ? 18
-                : 9;
+        )
+            ? 18
+            : 9;
 
-        const direction =
-            new THREE.Vector3(
-                right,
-                0,
-                forward
-            );
-
-        direction.applyAxisAngle(
-            new THREE.Vector3(0, 1, 0),
-            cameraYaw
+    const direction =
+        new THREE.Vector3(
+            right,
+            0,
+            forward
         );
 
-        player.position.addScaledVector(
-            direction,
-            speed * delta
+    direction.applyAxisAngle(
+        new THREE.Vector3(
+            0,
+            1,
+            0
+        ),
+        cameraYaw
+    );
+
+    player.position.addScaledVector(
+        direction,
+        speed * delta
+    );
+
+    const targetRotation =
+        Math.atan2(
+            direction.x,
+            direction.z
         );
 
-        const targetRotation =
-            Math.atan2(
-                direction.x,
-                direction.z
-            );
-
-        player.rotation.y =
-            THREE.MathUtils.lerp(
-                player.rotation.y,
-                targetRotation,
-                0.18
-            );
-    }
+    player.rotation.y =
+        THREE.MathUtils.lerp(
+            player.rotation.y,
+            targetRotation,
+            0.18
+        );
 }
 
 /* =========================================================
@@ -1000,14 +1172,22 @@ function updateCamera() {
         cameraDistance *
         Math.cos(cameraPitch);
 
-    const offset = new THREE.Vector3(
-        Math.sin(cameraYaw) * horizontal,
-        cameraDistance * Math.sin(cameraPitch),
-        Math.cos(cameraYaw) * horizontal
-    );
+    const offset =
+        new THREE.Vector3(
+            Math.sin(cameraYaw) *
+                horizontal,
+
+            cameraDistance *
+                Math.sin(cameraPitch),
+
+            Math.cos(cameraYaw) *
+                horizontal
+        );
 
     const desired =
-        player.position.clone().add(offset);
+        player.position
+            .clone()
+            .add(offset);
 
     desired.y += 3;
 
@@ -1037,7 +1217,6 @@ window.addEventListener(
             window.innerWidth,
             window.innerHeight
         );
-
     }
 );
 
@@ -1045,9 +1224,14 @@ window.addEventListener(
    GAME LOOP
 ========================================================= */
 
+const clock =
+    new THREE.Clock();
+
 function animate() {
 
-    requestAnimationFrame(animate);
+    requestAnimationFrame(
+        animate
+    );
 
     const delta =
         Math.min(
